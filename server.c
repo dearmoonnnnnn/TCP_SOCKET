@@ -7,6 +7,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <ctype.h>
 
 // @descripiton: 处理系统调用中的错误
 void sys_err(const char *str){
@@ -17,7 +18,7 @@ void sys_err(const char *str){
 int main(int argc, char *argv[]){
     int sockfd, newfd;
     struct sockaddr_in serv_addr, client_addr;
-    socklen_t len = sizeof(client_addr);
+    socklen_t clit_addr_len;
 
     int ret;                // 表示实际读取的字节数，ret == 0 表示读取完毕
     char buf[BUFSIZ];       // 缓冲区，用于存储读取的客户端数据，BUFSIZ 是系统定义好的宏，大小为4096
@@ -36,6 +37,7 @@ int main(int argc, char *argv[]){
 
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(atoi(argv[1]));
+    // serv_addr.sin_port = htons(SERV_PORT);
     serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
     if(bind(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) == -1){
@@ -45,8 +47,8 @@ int main(int argc, char *argv[]){
     listen(sockfd, 128);
 
     // 因为 len 是传入传出参数， 不能直接 sizeof 获取， 需要先赋值
-    len = sizeof(client_addr);
-    newfd = accept(sockfd, (struct sockaddr *) &client_addr, len);
+    clit_addr_len = sizeof(client_addr);
+    newfd = accept(sockfd, (struct sockaddr *) &client_addr, &clit_addr_len);
 
     if(newfd == -1){
         sys_err("socket error");
@@ -66,7 +68,7 @@ int main(int argc, char *argv[]){
         write(newfd, buf, ret);
     }
 
-    
+
     close(sockfd);
     close(newfd);
 }
